@@ -16,7 +16,7 @@ from server.memory.conversation_db_buffer_memory import ConversationBufferDBMemo
 from server.db.repository import add_message_to_db
 from server.callback_handler.conversation_callback_handler import ConversationCallbackHandler
 
-
+# NOTE：核心对话服务的类
 async def chat(query: str = Body(..., description="用户输入", examples=["恼羞成怒"]),
                conversation_id: str = Body("", description="对话框ID"),
                history_len: int = Body(-1, description="从数据库中取历史消息的数量"),
@@ -34,6 +34,7 @@ async def chat(query: str = Body(..., description="用户输入", examples=["恼
                # top_p: float = Body(TOP_P, description="LLM 核采样。勿与temperature同时设置", gt=0.0, lt=1.0),
                prompt_name: str = Body("default", description="使用的prompt模板名称(在configs/prompt_config.py中配置)"),
                ):
+    # NOTE：异步迭代
     async def chat_iterator() -> AsyncIterable[str]:
         nonlocal history, max_tokens
         callback = AsyncIteratorCallbackHandler()
@@ -78,12 +79,14 @@ async def chat(query: str = Body(..., description="用户输入", examples=["恼
 
         chain = LLMChain(prompt=chat_prompt, llm=model, memory=memory)
 
+        # NOTE：python协程运行任务，高并发量
         # Begin a task that runs in the background.
         task = asyncio.create_task(wrap_done(
             chain.acall({"input": query}),
             callback.done),
         )
 
+        # NOTE: 流式输出推理的结果
         if stream:
             async for token in callback.aiter():
                 # Use server-sent-events to stream the response

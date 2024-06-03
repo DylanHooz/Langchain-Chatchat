@@ -26,10 +26,9 @@ from typing import List, Literal
 
 nltk.data.path = [NLTK_DATA_PATH] + nltk.data.path
 
-
+#NOTE： http请求核心服务文件
 async def document():
     return RedirectResponse(url="/docs")
-
 
 def create_app(run_mode: str = None):
     app = FastAPI(
@@ -52,6 +51,7 @@ def create_app(run_mode: str = None):
     return app
 
 
+# NOTE：前后端的Http controler层接口
 def mount_app_routes(app: FastAPI, run_mode: str = None):
     app.get("/",
             response_model=BaseResponse,

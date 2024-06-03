@@ -9,6 +9,7 @@ from server.utils import iter_over_async, asyncio
 from typing import List, Dict
 
 
+# NOTE: 科大讯飞星火大模型
 async def request(appid, api_key, api_secret, Spark_url, domain, question, temperature, max_token):
     wsParam = SparkApi.Ws_Param(appid, api_key, api_secret, Spark_url)
     wsUrl = wsParam.create_url()

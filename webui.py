@@ -11,6 +11,8 @@ from server.utils import api_address
 
 api = ApiRequest(base_url=api_address())
 
+# NOTE：steamlit启动web端
+# TODO：这里都是基于streamlit启动的web前端，需要替换为vue的正常前端
 if __name__ == "__main__":
     is_lite = "lite" in sys.argv
 

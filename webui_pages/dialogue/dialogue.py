@@ -19,7 +19,8 @@ chat_box = ChatBox(
     )
 )
 
-
+# NOTE：返回消息历史
+# TODO：这里都是web页面的，基于streamlit的，需要替换
 def get_messages_history(history_len: int, content_in_expander: bool = False) -> List[Dict]:
     '''
     返回消息历史。
@@ -40,6 +41,7 @@ def get_messages_history(history_len: int, content_in_expander: bool = False) ->
     return chat_box.filter_history(history_len=history_len, filter=filter)
 
 
+# NOTE：将文件上传到临时目录，用于文件对话
 @st.cache_data
 def upload_temp_docs(files, _api: ApiRequest) -> str:
     '''
@@ -49,6 +51,7 @@ def upload_temp_docs(files, _api: ApiRequest) -> str:
     return _api.upload_temp_docs(files).get("data", {}).get("id")
 
 
+# NOTE：检查用户是否输入了自定义命令
 def parse_command(text: str, modal: Modal) -> bool:
     '''
     检查用户是否输入了自定义命令，当前支持：
@@ -95,13 +98,17 @@ def parse_command(text: str, modal: Modal) -> bool:
         return True
     return False
 
-
+# NOTE:【对话页面】接受过来的http reqeust，将用户提问进行RAG和LLM处理，返回回答语句
 def dialogue_page(api: ApiRequest, is_lite: bool = False):
+    # TODO：下面用的都是给予streamlit框架快速搭建的web对话应用的功能，streamlit将监测http请求，一旦有变化（例如切换对话模式），就会重新刷新整个对话页面的所有组件到前端重新渲染。
+    #  如果要支持一定的高并发，可能需要替换streamlit
+    #分配一个对话的id，使用随机数
     st.session_state.setdefault("conversation_ids", {})
     st.session_state["conversation_ids"].setdefault(chat_box.cur_chat_name, uuid.uuid4().hex)
     st.session_state.setdefault("file_chat_id", None)
     default_model = api.get_default_llm_model()[0]
 
+    #首次打开页面时右下角展示提示
     if not chat_box.chat_inited:
         st.toast(
             f"欢迎使用 [`Langchain-Chatchat`](https://github.com/chatchat-space/Langchain-Chatchat) ! \n\n"
@@ -116,16 +123,20 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
             cmds = [x for x in parse_command.__doc__.split("\n") if x.strip().startswith("/")]
             st.write("\n\n".join(cmds))
 
+
     with st.sidebar:
         # 多会话
         conv_names = list(st.session_state["conversation_ids"].keys())
         index = 0
+        # 返回当前对话用户的上下文
         if st.session_state.get("cur_conv_name") in conv_names:
             index = conv_names.index(st.session_state.get("cur_conv_name"))
         conversation_name = st.selectbox("当前会话：", conv_names, index=index)
+        # 判断当前的用户会话，如果是全新的，那么清空histroy上下文初始化；如果是已有的用户会话，则选定它。并从名称获取对应id
         chat_box.use_chat_name(conversation_name)
         conversation_id = st.session_state["conversation_ids"][conversation_name]
 
+        #NOTE：监听：切换问答模式
         def on_mode_change():
             mode = st.session_state.dialogue_mode
             text = f"已切换到 {mode} 模式。"
@@ -148,6 +159,7 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
                                      key="dialogue_mode",
                                      )
 
+        # NOTE：监听：切换LLM模型
         def on_llm_change():
             if llm_model:
                 config = api.get_model_config(llm_model)
@@ -155,11 +167,13 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
                     st.session_state["prev_llm_model"] = llm_model
                 st.session_state["cur_llm_model"] = st.session_state.llm_model
 
+        # NOTE：获取当前正在使用的LLM模型
         def llm_model_format_func(x):
             if x in running_models:
                 return f"{x} (Running)"
             return x
 
+        #获取GPU中已经部署了可用的LLM模型列表
         running_models = list(api.list_running_models())
         available_models = []
         config_models = api.list_config_models()
@@ -177,6 +191,7 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
             index = llm_models.index(cur_llm_model)
         else:
             index = 0
+        #获取页面上选择的LLM模型
         llm_model = st.selectbox("选择LLM模型：",
                                  llm_models,
                                  index,
@@ -210,6 +225,7 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
         if "prompt_template_select" not in st.session_state:
             st.session_state.prompt_template_select = prompt_templates_kb_list[0]
 
+        # NOTE：切换prompt模板时在界面右下角提示
         def prompt_change():
             text = f"已切换为 {prompt_template_name} 模板。"
             st.toast(text)
@@ -225,9 +241,11 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
         temperature = st.slider("Temperature：", 0.0, 2.0, TEMPERATURE, 0.05)
         history_len = st.number_input("历史对话轮数：", 0, 20, HISTORY_LEN)
 
+        # NOTE：知识库模式下切换知识库时界面右下角提示
         def on_kb_change():
             st.toast(f"已加载知识库： {st.session_state.selected_kb}")
 
+        # NOTE：对话模式
         if dialogue_mode == "知识库问答":
             with st.expander("知识库配置", True):
                 kb_list = api.list_knowledge_bases()
@@ -271,11 +289,13 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
                 )
                 se_top_k = st.number_input("匹配搜索结果条数：", 1, 20, SEARCH_ENGINE_TOP_K)
 
-    # Display chat messages from history on app rerun
+    # 展示历史对话内容，由于streamlit会全部重新渲染所有组件，因此需要手动告诉他要把历史信息渲染出来。否则会丢失
     chat_box.output_messages()
 
+    #对话框提示语
     chat_input_placeholder = "请输入对话内容，换行请使用Shift+Enter。输入/help查看自定义命令 "
 
+    # NOTE：用户反馈
     def on_feedback(
             feedback,
             message_id: str = "",
@@ -293,12 +313,14 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
         "optional_text_label": "欢迎反馈您打分的理由",
     }
 
+    # NOTE：获取提问，开始对话
     if prompt := st.chat_input(chat_input_placeholder, key="prompt"):
         if parse_command(text=prompt, modal=modal):  # 用户输入自定义命令
             st.rerun()
         else:
             history = get_messages_history(history_len)
             chat_box.user_say(prompt)
+            ######LLM对话
             if dialogue_mode == "LLM 对话":
                 chat_box.ai_say("正在思考...")
                 text = ""
@@ -325,7 +347,7 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
                                        key=message_id,
                                        on_submit=on_feedback,
                                        kwargs={"message_id": message_id, "history_index": len(chat_box.history) - 1})
-
+            ######自定义Agent问答
             elif dialogue_mode == "自定义Agent问答":
                 if not any(agent in llm_model for agent in SUPPORT_AGENT_MODEL):
                     chat_box.ai_say([
@@ -364,6 +386,8 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
                         chat_box.update_msg(text, element_index=1)
                 chat_box.update_msg(ans, element_index=0, streaming=False)
                 chat_box.update_msg(text, element_index=1, streaming=False)
+
+            #####知识库问答
             elif dialogue_mode == "知识库问答":
                 chat_box.ai_say([
                     f"正在查询知识库 `{selected_kb}` ...",
@@ -385,6 +409,8 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
                         chat_box.update_msg(text, element_index=0)
                 chat_box.update_msg(text, element_index=0, streaming=False)
                 chat_box.update_msg("\n\n".join(d.get("docs", [])), element_index=1, streaming=False)
+
+            ##### 文件对话
             elif dialogue_mode == "文件对话":
                 if st.session_state["file_chat_id"] is None:
                     st.error("请先上传文件再进行对话")
@@ -409,6 +435,7 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
                         chat_box.update_msg(text, element_index=0)
                 chat_box.update_msg(text, element_index=0, streaming=False)
                 chat_box.update_msg("\n\n".join(d.get("docs", [])), element_index=1, streaming=False)
+            ##### 搜索引擎问答
             elif dialogue_mode == "搜索引擎问答":
                 chat_box.ai_say([
                     f"正在执行 `{search_engine}` 搜索...",
@@ -436,8 +463,8 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
         st.rerun()
 
     now = datetime.now()
-    with st.sidebar:
 
+    with st.sidebar:
         cols = st.columns(2)
         export_btn = cols[0]
         if cols[1].button(
@@ -447,6 +474,7 @@ def dialogue_page(api: ApiRequest, is_lite: bool = False):
             chat_box.reset_history()
             st.rerun()
 
+    # NOTE：导出记录
     export_btn.download_button(
         "导出记录",
         "".join(chat_box.export2md()),

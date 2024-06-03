@@ -15,7 +15,8 @@ import time
 
 cell_renderer = JsCode("""function(params) {if(params.value==true){return '✓'}else{return '×'}}""")
 
-
+# NOTE：知识库管理web页面
+# TODO：这里都是基于streamlit的web端，需要替换
 def config_aggrid(
         df: pd.DataFrame,
         columns: Dict[Tuple[str, str], Dict] = {},
@@ -52,6 +53,7 @@ def file_exists(kb: str, selected_rows: List) -> Tuple[str, str]:
     return "", ""
 
 
+# NOTE：【知识库页面】：接受过来的http reqeust，获取我们的知识库的信息
 def knowledge_base_page(api: ApiRequest, is_lite: bool = None):
     try:
         kb_list = {x["kb_name"]: x for x in get_kb_details()}

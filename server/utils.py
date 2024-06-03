@@ -422,6 +422,7 @@ def fschat_openai_api_address() -> str:
     return f"http://{host}:{port}/v1"
 
 
+# NOTE: api功能内部路由的暴露端口
 def api_address() -> str:
     from configs.server_config import API_SERVER
 
@@ -432,6 +433,7 @@ def api_address() -> str:
     return f"http://{host}:{port}"
 
 
+# NOTE: web端的暴露端口
 def webui_address() -> str:
     from configs.server_config import WEBUI_SERVER
 
