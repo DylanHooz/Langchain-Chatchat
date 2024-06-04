@@ -18,6 +18,8 @@ from langchain.docstore.document import Document
 from server.knowledge_base.model.kb_document_model import DocumentWithVSId
 from typing import List, Dict
 
+# NOTE：查找、增加、删除、更新 某个知识库中的多个知识（文件、向量）
+
 
 def search_docs(
         query: str = Body("", description="用户输入", examples=["你好"]),

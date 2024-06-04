@@ -21,6 +21,9 @@ from dateutil.parser import parse
 from typing import Literal, List
 
 
+#NOTE： 知识库知识：数据迁移
+
+
 def create_tables():
     Base.metadata.create_all(bind=engine)
 

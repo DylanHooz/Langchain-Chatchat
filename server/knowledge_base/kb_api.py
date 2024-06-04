@@ -7,6 +7,7 @@ from configs import EMBEDDING_MODEL, logger, log_verbose
 from fastapi import Body
 
 
+# NOTE：查、增、删 知识库本身
 def list_kbs():
     # Get List of Knowledge Base
     return ListResponse(data=list_kbs_from_db())

@@ -3,18 +3,18 @@ import os
 # 可以指定一个绝对路径，统一存放所有的Embedding和LLM模型。
 # 每个模型可以是一个单独的目录，也可以是某个目录下的二级子目录。
 # 如果模型目录名称和 MODEL_PATH 中的 key 或 value 相同，程序会自动检测加载，无需修改 MODEL_PATH 中的路径。
-MODEL_ROOT_PATH = ""
+MODEL_ROOT_PATH = "/home/dinghaolun/rag/"
 
 # 选用的 Embedding 名称
-EMBEDDING_MODEL = "bge-large-zh-v1.5"
+EMBEDDING_MODEL = "bce-embedding-base_v1"
 
 # Embedding 模型运行设备。设为 "auto" 会自动检测(会有警告)，也可手动设定为 "cuda","mps","cpu","xpu" 其中之一。
 EMBEDDING_DEVICE = "auto"
 
 # 选用的reranker模型
-RERANKER_MODEL = "bge-reranker-large"
+RERANKER_MODEL = "bce-reranker-base_v1"
 # 是否启用reranker模型
-USE_RERANKER = False
+USE_RERANKER = True
 RERANKER_MAX_LENGTH = 1024
 
 # 如果需要在 EMBEDDING_MODEL 中增加自定义的关键字时配置
@@ -128,14 +128,14 @@ ONLINE_LLM_MODEL = {
     },
 
     # Claude API : https://www.anthropic.com/api
-    # Available models: 
-    # Claude 3 Opus:    claude-3-opus-20240229 
+    # Available models:
+    # Claude 3 Opus:    claude-3-opus-20240229
     # Claude 3 Sonnet	claude-3-sonnet-20240229
     # Claude 3 Haiku	claude-3-haiku-20240307
     "claude-api": {
         "api_key": "",
         "version": "2023-06-01",
-        "model_name":"claude-3-opus-20240229", 
+        "model_name":"claude-3-opus-20240229",
         "provider": "ClaudeWorker",
     }
 
@@ -177,6 +177,7 @@ MODEL_PATH = {
         "piccolo-large-zh": "sensenova/piccolo-large-zh",
         "nlp_gte_sentence-embedding_chinese-large": "damo/nlp_gte_sentence-embedding_chinese-large",
         "text-embedding-ada-002": "your OPENAI_API_KEY",
+        "bce-embedding-base_v1":"maidalun1020/bce-embedding-base_v1",
     },
 
     "llm_model": {
@@ -253,6 +254,7 @@ MODEL_PATH = {
     "reranker": {
         "bge-reranker-large": "BAAI/bge-reranker-large",
         "bge-reranker-base": "BAAI/bge-reranker-base",
+        "bce-reranker-base_v1":"maidalun1020/bce-reranker-base_v1",
     }
 }
 

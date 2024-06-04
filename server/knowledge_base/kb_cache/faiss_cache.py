@@ -9,7 +9,8 @@ from langchain.schema import Document
 import os
 from langchain.schema import Document
 
-
+# NOTE：由于python GIL锁的原因，faiss搜索稠密向量又是计算密集型任务，faiss在python下只能单核处理，并发量不会特别高。但由于其框架先进，
+#  单线程的处理速度下并发量应该能用于小型企业（待测试）
 # patch FAISS to include doc id in Document.metadata
 def _new_ds_search(self, search: str) -> Union[str, Document]:
     if search not in self._dict:
@@ -21,7 +22,7 @@ def _new_ds_search(self, search: str) -> Union[str, Document]:
         return doc
 InMemoryDocstore.search = _new_ds_search
 
-
+# NOTE：线程安全（IO密集）保存知识库文本及向量到本地磁盘
 class ThreadSafeFaiss(ThreadSafeObject):
     def __repr__(self) -> str:
         cls = type(self).__name__
@@ -48,7 +49,7 @@ class ThreadSafeFaiss(ThreadSafeObject):
             logger.info(f"已将向量库 {self.key} 清空")
         return ret
 
-
+# NOTE：faiss内存缓存池父类
 class _FaissPool(CachePool):
     def new_vector_store(
         self,
@@ -71,7 +72,7 @@ class _FaissPool(CachePool):
             self.pop(kb_name)
             logger.info(f"成功释放向量库：{kb_name}")
 
-
+# NOTE：faiss知识库内存缓存池
 class KBFaissPool(_FaissPool):
     def load_vector_store(
             self,
@@ -109,7 +110,7 @@ class KBFaissPool(_FaissPool):
             self.atomic.release()
         return self.get((kb_name, vector_name))
 
-
+# NOTE：faiss向量数据库缓存到内存中运行
 class MemoFaissPool(_FaissPool):
     def load_vector_store(
         self,

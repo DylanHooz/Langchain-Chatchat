@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from configs import SQLALCHEMY_DATABASE_URI
 import json
 
-
+# SQLAchemy库去操作数据库连接池和上下文
 engine = create_engine(
     SQLALCHEMY_DATABASE_URI,
     json_serializer=lambda obj: json.dumps(obj, ensure_ascii=False),

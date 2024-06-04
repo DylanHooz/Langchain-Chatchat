@@ -1,7 +1,10 @@
 from server.db.models.knowledge_base_model import KnowledgeBaseModel
 from server.db.session import with_session
 
+# NOTE：知识库（KB）的数据库连接代码
 
+
+# NOTE：创建一个知识库
 @with_session
 def add_kb_to_db(session, kb_name, kb_info, vs_type, embed_model):
     # 创建知识库实例
@@ -16,6 +19,7 @@ def add_kb_to_db(session, kb_name, kb_info, vs_type, embed_model):
     return True
 
 
+# NOTE：列出所有的知识库
 @with_session
 def list_kbs_from_db(session, min_file_count: int = -1):
     kbs = session.query(KnowledgeBaseModel.kb_name).filter(KnowledgeBaseModel.file_count > min_file_count).all()
@@ -23,6 +27,7 @@ def list_kbs_from_db(session, min_file_count: int = -1):
     return kbs
 
 
+# NOTE：查询某知识库是否存在
 @with_session
 def kb_exists(session, kb_name):
     kb = session.query(KnowledgeBaseModel).filter(KnowledgeBaseModel.kb_name.ilike(kb_name)).first()
@@ -30,6 +35,7 @@ def kb_exists(session, kb_name):
     return status
 
 
+# NOTE：从向量数据库中获取此知识库的基本信息（不含向量）
 @with_session
 def load_kb_from_db(session, kb_name):
     kb = session.query(KnowledgeBaseModel).filter(KnowledgeBaseModel.kb_name.ilike(kb_name)).first()
@@ -40,6 +46,7 @@ def load_kb_from_db(session, kb_name):
     return kb_name, vs_type, embed_model
 
 
+# NOTE：删除此知识库
 @with_session
 def delete_kb_from_db(session, kb_name):
     kb = session.query(KnowledgeBaseModel).filter(KnowledgeBaseModel.kb_name.ilike(kb_name)).first()
@@ -48,6 +55,7 @@ def delete_kb_from_db(session, kb_name):
     return True
 
 
+# NOTE：从向量数据库中获取此知识库的详细信息（不含向量）
 @with_session
 def get_kb_detail(session, kb_name: str) -> dict:
     kb: KnowledgeBaseModel = session.query(KnowledgeBaseModel).filter(KnowledgeBaseModel.kb_name.ilike(kb_name)).first()

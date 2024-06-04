@@ -6,6 +6,10 @@ fastapi使用的协程，能够支撑大并发量
 实际调用时都是通过内部路由再走进 127.0.0.1:7861去实际调用。 streamlit渲染量太大不适合并发，只能做demo，需要替换。
 - 3、项目中：bge-large-zh embedding向量化使用了模型、reranker的重排使用了模型、最后生成对话chatglm也使用了llm。 这三个都是使用gpu的，特别是最后llm是耗时最大的部分，都适合使用在线的商业公司api，以提高项目的并发。
 否则只能使用gpu串行，成本高且扩展难度大。
+- 4、项目使用fastchat作为框架来调用语言对话模型和将其作为服务。fastchat网络资料得知其能支持一定的并发量，因此可以不做替换。
+FastChat 框架部署一个完整的模型服务主要分为三个部分，分别为： Controller ， Server 以及多个 Worker
+![img.png](img.png)
+- 5、从[kb_config.py.example](configs%2Fkb_config.py.example)文件可知，存储一些普通信息数据库用的时sqlite，存储向量数据用的时faiss在本地创建向量数据库。
 - 在线商业api
 - 
 | 模型类别      | 模型                 |     公司      |链接 |

@@ -29,7 +29,7 @@ from typing import List, Union, Dict, Optional, Tuple
 from server.embeddings_api import embed_texts, aembed_texts, embed_documents
 from server.knowledge_base.model.kb_document_model import DocumentWithVSId
 
-
+# NOTE：Knowledge Base （KB） 知识库（向量数据库）基础组件
 def normalize(embeddings: List[List[float]]) -> np.ndarray:
     '''
     sklearn.preprocessing.normalize 的替代（使用 L2），避免安装 scipy, scikit-learn
@@ -309,6 +309,7 @@ class KBService(ABC):
 
 class KBServiceFactory:
 
+    # 各种不同的向量数据库引擎
     @staticmethod
     def get_service(kb_name: str,
                     vector_store_type: Union[str, SupportedVSType],

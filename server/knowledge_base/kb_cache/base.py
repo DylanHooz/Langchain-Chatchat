@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from collections import OrderedDict
 from typing import List, Any, Union, Tuple
 
-
+# NOTE：python多线程由于GIL锁，创建了多线程后，多核主机也只能支持同一时间只有一个线程在工作，不能真正利用多核达到多线程并行。
 class ThreadSafeObject:
     def __init__(self, key: Union[str, Tuple], obj: Any = None, pool: "CachePool" = None):
         self._obj = obj
