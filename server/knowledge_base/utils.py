@@ -302,6 +302,9 @@ class KnowledgeFile:
             self.docs = loader.load()
         return self.docs
 
+    '''
+    【函数】文本切分为多个text chunks
+    '''
     def docs2texts(
             self,
             docs: List[Document] = None,
