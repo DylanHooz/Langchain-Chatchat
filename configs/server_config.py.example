@@ -90,6 +90,7 @@ FSCHAT_MODEL_WORKERS = {
         # 'disable_log_requests': False
 
     },
+    #修改这个地方会影响最终模型是加载到cpu还是gpu
     "chatglm3-6b": {
         "device": "cuda",
     },
