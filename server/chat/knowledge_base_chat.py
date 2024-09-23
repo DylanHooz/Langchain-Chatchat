@@ -1,4 +1,5 @@
 from fastapi import Body, Request
+from langchain_core.prompts import PromptTemplate
 from sse_starlette.sse import EventSourceResponse
 from fastapi.concurrency import run_in_threadpool
 from configs import (LLM_MODELS, 
@@ -78,8 +79,14 @@ async def knowledge_base_chat(query: str = Body(..., description="用户输入",
         )
 
         #add：增加query重写功能，通过大模型重写查询语句，以便提高命中率
-        query_rewrite_template = """Provide a better search query for vector search engine to answer the given question, end the queries with ’**’. Question: {} Answer:"""
-        query = query_rewrite_template.format(query)
+        query_rewrite_prompt = PromptTemplate(
+            input_variables=["product"],
+            template="Provide a better search query for vector search engine to answer the given question, end the queries with ’**’. Question: {product} Answer:",
+        )
+        query_rewrite_chain = LLMChain(llm=model, prompt=query_rewrite_prompt)
+        query_rewrite_chain_llm_response = query_rewrite_chain.run({'product': query})
+        print("rewrite输出结果为{}".format(query_rewrite_chain_llm_response))
+        query = query_rewrite_chain_llm_response
 
         #从知识库进行语义查询
         docs = await run_in_threadpool(search_docs,
