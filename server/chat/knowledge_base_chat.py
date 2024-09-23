@@ -76,6 +76,12 @@ async def knowledge_base_chat(query: str = Body(..., description="用户输入",
             max_tokens=max_tokens,
             callbacks=[callback],
         )
+
+        #add：增加query重写功能，通过大模型重写查询语句，以便提高命中率
+        query_rewrite_template = """Provide a better search query for vector search engine to answer the given question, end the queries with ’**’. Question: {} Answer:"""
+        query = query_rewrite_template.format(query)
+
+        #从知识库进行语义查询
         docs = await run_in_threadpool(search_docs,
                                        query=query,
                                        knowledge_base_name=knowledge_base_name,
