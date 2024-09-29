@@ -377,6 +377,7 @@ def recreate_vector_store(
             files = list_files_from_folder(knowledge_base_name)
             kb_files = [(file, knowledge_base_name) for file in files]
             i = 0
+            #将文件通过多线程转换后，for循环添加到知识库
             for status, result in files2docs_in_thread(kb_files,
                                                        chunk_size=chunk_size,
                                                        chunk_overlap=chunk_overlap,
@@ -393,6 +394,9 @@ def recreate_vector_store(
                         "doc": file_name,
                     }, ensure_ascii=False)
                     kb.add_doc(kb_file, not_refresh_vs_cache=True)
+                    #每100个文件至少保存一次向量数据库
+                    if(i%100 == 0):
+                        kb.save_vector_store()
                 else:
                     kb_name, file_name, error = result
                     msg = f"添加文件‘{file_name}’到知识库‘{knowledge_base_name}’时出错：{error}。已跳过。"
@@ -402,7 +406,8 @@ def recreate_vector_store(
                         "msg": msg,
                     })
                 i += 1
-            if not not_refresh_vs_cache:
-                kb.save_vector_store()
+            #不管怎么样要更新
+            # if not not_refresh_vs_cache:
+            kb.save_vector_store()
 
     return EventSourceResponse(output())
