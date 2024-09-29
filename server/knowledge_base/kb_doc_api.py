@@ -396,6 +396,7 @@ def recreate_vector_store(
                     kb.add_doc(kb_file, not_refresh_vs_cache=True)
                     #每100个文件至少保存一次向量数据库
                     if(i%100 == 0):
+                        print("100个文件保存一次到向量库，目前kb的容量={}".format(kb.__sizeof__()))
                         kb.save_vector_store()
                 else:
                     kb_name, file_name, error = result
